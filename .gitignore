@@ -1,0 +1,42 @@
+# --- Python (FastAPI) ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# --- Node / React ---
+node_modules/
+build/
+dist/
+dist-ssr/
+*.local
+.eslintcache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json.lock
+
+# --- IDEs & OS ---
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# --- Environment Variables ---
+# IMPORTANT: Keep your secrets out of version control
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.secret
+
