@@ -120,7 +120,7 @@ pip install -r requirements.txt
 Create `.env` file:
 
 ```
-GEMINI_API_KEY=your_api_key
+Grok=your_api_key
 SUPABASE_URL=your_supabase_url
 SUPABASE_KEY=your_supabase_key
 ```
@@ -158,13 +158,13 @@ npm install
 ## 3️⃣ Run App
 
 ```bash
-npm start
+npm run dev
 ```
 
 Frontend runs on:
 
 ```
-http://localhost:3000
+http://localhost:5173
 ```
 
 ---
