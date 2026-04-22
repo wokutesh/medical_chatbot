@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from supabase_client import supabase
 from chatbot import generate_response
 from auth import register_user, login_user
+from chat_history import delete_chat_session
 
 app = FastAPI()
 
@@ -142,3 +143,18 @@ def get_sessions(user_id: str):
     except Exception as e:
         print("SESSION ERROR:", e)
         return {}
+    
+@app.delete("/delete-session/{session_id}")
+def delete_session(session_id: str):
+
+    try:
+        delete_chat_session(session_id)
+        return {"message": "deleted"}
+
+    except Exception as e:
+        print("DELETE SESSION ERROR:", e)
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete session"
+        )

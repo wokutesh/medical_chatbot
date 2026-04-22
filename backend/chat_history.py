@@ -22,3 +22,18 @@ def get_chat_history(session_id):
         .execute()
 
     return response.data
+
+from supabase_client import supabase
+
+def delete_chat_session(session_id):
+    try:
+        response = supabase.table("chats") \
+            .delete() \
+            .eq("session_id", session_id) \
+            .execute()
+
+        return response
+
+    except Exception as e:
+        print("DELETE ERROR:", e)
+        return None

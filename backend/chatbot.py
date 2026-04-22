@@ -1,77 +1,97 @@
 import os
 from dotenv import load_dotenv
-from google import genai
+from groq import Groq
 from retriever import retrieve_context
 from chat_history import get_chat_history, save_chat
+
 load_dotenv()
 
-client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+client = Groq(api_key=os.getenv("Groq")) 
 
 
 def generate_response(user_id, session_id, message):
 
+   
     save_chat(user_id, session_id, "user", message)
 
+   
     history = get_chat_history(session_id)[-8:]
 
-    conversation = ""
-    for msg in history:
-        role = "User" if msg["role"] == "user" else "Assistant"
-        conversation += f"{role}: {msg['content']}\n"
+    
+    messages = [
+    {
+        "role": "system",
+        "content": """
+You are a friendly Ethiopian doctor assistant chatting in natural spoken Amharic.
 
+🚨 VERY IMPORTANT STYLE RULES:
+- Speak like a real person, not a textbook or translator.
+- Use simple everyday Amharic (casual tone).
+- NEVER use robotic or formal phrases like:
+  ❌ "አስችላለሁ"
+  ❌ "ዶክተሩ እንደሚያደርገው"
+  ❌ "ሆስፒታል ወደምትሄድ አስችላለሁ"
+
+✔ Instead use natural phrases:
+  ✔ "እሺ ተረድቻለሁ"
+  ✔ "ይህ ምናልባት ከድካም ሊሆን ይችላል"
+  ✔ "ምን ያህል ጊዜ እየቆየ ነው?"
+
+🚑 MEDICAL RULES:
+- Do NOT jump to hospital recommendation immediately
+- Only suggest hospital IF symptoms are serious
+- Otherwise explain simply first
+
+🧠 RESPONSE STYLE:
+- 1 short understanding sentence
+- 1 simple explanation
+- OPTIONAL: 1 short question (only if needed)
+
+❌ NEVER repeat user's message
+❌ NEVER sound like translation engine
+❌ NEVER use formal academic Amharic
+"""
+    }
+]
+
+   
+    for msg in history:
+        messages.append({
+            "role": "user" if msg["role"] == "user" else "assistant",
+            "content": msg["content"]
+        })
+   
     context = retrieve_context(message)
 
-    prompt = f"""
-You are a helpful and safe Ethiopian medical assistant.
-
-Your task:
-- Understand user symptoms using medical context (RAG)
-- Use conversation history for continuity
-- Keep conversation natural and not repetitive
-- Respond ONLY in Amharic language
-
-CRITICAL CONVERSATION RULES:
-
-1. Do NOT ask many follow-up questions.
-2. Ask ONLY clarifying questions per session.
-3. If enough symptom information is already available, DO NOT ask more questions.
-4. Avoid repeating or rephrasing previous questions.
-5. Keep questions very short and only for essential diagnosis.
-
-6. Do NOT give treatment advice unless the user explicitly asks for advice or suggestion.
-7. If the user asks for advice → provide safe, simple medical guidance.
-8. If symptoms are serious → gently recommend visiting a hospital.
-
-9. Keep responses short, natural, and conversational (not long explanations).
-
-Conversation History:
-{conversation}
-
-Medical Context (RAG):
+    messages.append({
+    "role": "user",
+    "content": f"""
+Context (if relevant):
 {context}
 
-User Message:
+User said:
 {message}
-
-RESPONSE FORMAT:
-
-- If advice NOT requested:
-  → brief understanding + OPTIONAL single core question (only if necessary)
-
-- If advice requested:
-  → simple explanation + safe recommendation + optional warning
-
-Respond in Amharic:
 """
+})
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt,
-        config={"temperature": 0.3}
-    )
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=messages,
+            temperature=0.3
+        )
 
-    answer = response.text
+        answer = response.choices[0].message.content.strip()
 
+        
+        if not answer:
+            answer = "ይቅርታ፣ መልስ ማግኘት አልቻልኩም። እባክዎ ደግመው ይሞክሩ።"
+
+    except Exception as e:
+        print("LLM ERROR:", e)
+        answer = "ይቅርታ፣ ችግር ተፈጥሯል። እባክዎ ደግመው ይሞክሩ።"
+
+    # Save bot response
     save_chat(user_id, session_id, "model", answer)
 
     return answer
