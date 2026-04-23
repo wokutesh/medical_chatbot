@@ -82,7 +82,7 @@ root/
 
 * FastAPI
 * Python
-* Gemini LLM
+* Groq LLM
 * ChromaDB
 * Supabase (Chat History / Auth)
 * Uvicorn
@@ -120,7 +120,7 @@ pip install -r requirements.txt
 Create `.env` file:
 
 ```
-Grok=your_api_key
+Groq=your_api_key
 SUPABASE_URL=your_supabase_url
 SUPABASE_KEY=your_supabase_key
 ```
